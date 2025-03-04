@@ -1,381 +1,493 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Information Form</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"],
-    input[type="email"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    input:invalid {
-      border-color: #ff6b6b;
-    }
-    .error {
-      color: #ff6b6b;
-      font-size: 12px;
-      margin-top: 5px;
-      display: none;
-    }
-    button {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-right: 10px;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-    #downloadBtn {
-      background-color: #27ae60;
-    }
-    #downloadBtn:hover {
-      background-color: #219653;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .delete-btn {
-      background-color: #e74c3c;
-      padding: 5px 10px;
-    }
-    .delete-btn:hover {
-      background-color: #c0392b;
-    }
-    .sections {
-      margin-top: 30px;
-    }
-    h2 {
-      color: #2c3e50;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>İstifadəçi haqqında məlumat</h1>
-    
-    <form id="userForm">
-      <div class="form-group">
-        <label for="firstName">Ad*</label>
-        <input type="text" id="firstName" required pattern="[A-Za-z]+" title="Yalnız ingilis hərflərinə icazə verilir">
-        <div class="error" id="firstNameError">Ad tələb olunur və yalnız ingilis hərflərindən ibarət olmalıdır.</div>
-      </div>
-      
-      <div class="form-group">
-        <label for="lastName">Soyad*</label>
-        <input type="text" id="lastName" required pattern="[A-Za-z]+" title="Yalnız ingilis hərflərinə icazə verilir">
-        <div class="error" id="lastNameError">Soyad tələb olunur və yalnız ingilis hərflərindən ibarət olmalıdır.</div>
-      </div>
-      
-      <div class="form-group">
-        <label for="fatherName">Ata adı*</label>
-        <input type="text" id="fatherName" required pattern="[A-Za-z]+" title="Yalnız ingilis hərflərinə icazə verilir">
-        <div class="error" id="fatherNameError">Ata adı tələb olunur və yalnız ingilis hərflərindən ibarət olmalıdır.</div>
-      </div>
-      
-      <div class="form-group">
-        <label for="email">Email*</label>
-        <input type="email" id="email" required>
-        <div class="error" id="emailError">Xahiş olunur, etibarlı bir email ünvanı daxil edin.</div>
-      </div>
-      
-      <div class="form-group">
-        <label for="mobile">Mobil nömrə (seçimlidir)</label>
-        <input type="text" id="mobile" pattern="[0-9]*" title="Yalnız rəqəmlərə icazə verilir">
-        <div class="error" id="mobileError">Mobil nömrə yalnız rəqəmlərdən ibarət olmalıdır.</div>
-      </div>
-      
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="confirmation" required>
-          Bütün məlumatların düzgün olduğunu təsdiqləyirsinizmi?*
-        </label>
-        <div class="error" id="confirmationError">Məlumatların düzgün olduğunu təsdiqləmək məcburidir.</div>
-      </div>
-      
-      <button type="submit" id="addBtn">Əlavə et</button>
-    </form>
-    
-    <div class="sections">
-      <h2>Əlavə edilmiş şəxslər</h2>
-      <table id="personsTable">
-        <thead>
-          <tr>
-            <th>Ad</th>
-            <th>Soyad</th>
-            <th>Ata adı</th>
-            <th>Email</th>
-            <th>Mobil</th>
-            <th>Əməliyyat</th>
-          </tr>
-        </thead>
-        <tbody id="personsList">
-          <!-- Əlavə edilmiş şəxslər burda göstəriləjək -->
-        </tbody>
-      </table>
-    </div>
-    
-    <div class="sections">
-      <h2>Məlumatı ixrac et</h2>
-      <button id="downloadBtn" disabled>Excel yüklə</button>
-    </div>
-</div>
-
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Store persons data
-      let personsData = [];
-      
-      // DOM Elementləri
-      const userForm = document.getElementById('userForm');
-      const firstNameInput = document.getElementById('firstName');
-      const lastNameInput = document.getElementById('lastName');
-      const fatherNameInput = document.getElementById('fatherName');
-      const emailInput = document.getElementById('email');
-      const mobileInput = document.getElementById('mobile');
-      const confirmationCheckbox = document.getElementById('confirmation');
-      const personsList = document.getElementById('personsList');
-      const downloadBtn = document.getElementById('downloadBtn');
-      
-      // Error mesajı
-      const firstNameError = document.getElementById('firstNameError');
-      const lastNameError = document.getElementById('lastNameError');
-      const fatherNameError = document.getElementById('fatherNameError');
-      const emailError = document.getElementById('emailError');
-      const mobileError = document.getElementById('mobileError');
-      const confirmationError = document.getElementById('confirmationError');
-      
-   
-      userForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (validateForm()) {
-          addPerson();
-          resetForm();
-        }
-      });
-      
-     
-      function validateForm() {
-        let isValid = true;
-        
- 
-        resetErrors();
-        
-        // Validasiya Ad
-        if (!firstNameInput.value.trim() || !/^[A-Za-z]+$/.test(firstNameInput.value.trim())) {
-          firstNameError.style.display = 'block';
-          isValid = false;
-        }
-        
-        // Validasiya soyad
-        if (!lastNameInput.value.trim() || !/^[A-Za-z]+$/.test(lastNameInput.value.trim())) {
-          lastNameError.style.display = 'block';
-          isValid = false;
-        }
-        
-        // Validasiya dede ad
-        if (!fatherNameInput.value.trim() || !/^[A-Za-z]+$/.test(fatherNameInput.value.trim())) {
-          fatherNameError.style.display = 'block';
-          isValid = false;
-        }
-        
-        // Validasiya email
-        if (!emailInput.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
-          emailError.style.display = 'block';
-          isValid = false;
-        }
-        
-        // Validasiya telfon (optionaldı)
-        if (mobileInput.value.trim() && !/^[0-9]+$/.test(mobileInput.value.trim())) {
-          mobileError.style.display = 'block';
-          isValid = false;
-        }
-        
-        // Validate Confirmation
-        if (!confirmationCheckbox.checked) {
-          confirmationError.style.display = 'block';
-          isValid = false;
-        }
-        
-        return isValid;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Information Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
       }
-      
-
-      function resetErrors() {
-        firstNameError.style.display = 'none';
-        lastNameError.style.display = 'none';
-        fatherNameError.style.display = 'none';
-        emailError.style.display = 'none';
-        mobileError.style.display = 'none';
-        confirmationError.style.display = 'none';
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-      
-      // Add person to the list
-      function addPerson() {
-        const firstName = firstNameInput.value.trim();
-        const lastName = lastNameInput.value.trim();
-        const fatherName = fatherNameInput.value.trim();
-        const email = emailInput.value.trim();
-        const mobile = mobileInput.value.trim();
-        const fatherInitial = fatherName.charAt(0).toLowerCase();
-        const username = `${firstName.toLowerCase()}.${fatherInitial}.${lastName.toLowerCase()}@belediyye.local`;
-        
-        // Add to data array
-        personsData.push({
-          firstName,
-          lastName,
-          fatherName,
-          email,
-          mobile,
-          fatherInitial,
-          username
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input[type="text"],
+      input[type="email"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      input:invalid {
+        border-color: #ff6b6b;
+      }
+      .error {
+        color: #ff6b6b;
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+      }
+      button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      #downloadBtn {
+        background-color: #27ae60;
+      }
+      #downloadBtn:hover {
+        background-color: #219653;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .delete-btn {
+        background-color: #e74c3c;
+        padding: 5px 10px;
+      }
+      .delete-btn:hover {
+        background-color: #c0392b;
+      }
+      .sections {
+        margin-top: 30px;
+      }
+      h2 {
+        color: #2c3e50;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>İstifadəçi haqqında məlumat</h1>
+
+      <form id="userForm">
+        <div class="form-group">
+          <label for="firstName">Ad*</label>
+          <input
+            type="text"
+            id="firstName"
+            required
+            pattern="[A-Za-z]+"
+            title="Yalnız ingilis hərflərinə icazə verilir"
+          />
+          <div class="error" id="firstNameError">
+            Ad tələb olunur və yalnız ingilis hərflərindən ibarət olmalıdır.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Soyad*</label>
+          <input
+            type="text"
+            id="lastName"
+            required
+            pattern="[A-Za-z]+"
+            title="Yalnız ingilis hərflərinə icazə verilir"
+          />
+          <div class="error" id="lastNameError">
+            Soyad tələb olunur və yalnız ingilis hərflərindən ibarət olmalıdır.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fatherName">Ata adı*</label>
+          <input
+            type="text"
+            id="fatherName"
+            required
+            pattern="[A-Za-z]+"
+            title="Yalnız ingilis hərflərinə icazə verilir"
+          />
+          <div class="error" id="fatherNameError">
+            Ata adı tələb olunur və yalnız ingilis hərflərindən ibarət
+            olmalıdır.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email*</label>
+          <input type="email" id="email" required />
+          <div class="error" id="emailError">
+            Xahiş olunur, etibarlı bir email ünvanı daxil edin.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="mobile">Mobil nömrə (seçimlidir)</label>
+          <input
+            type="text"
+            id="mobile"
+            pattern="[0-9]*"
+            title="Yalnız rəqəmlərə icazə verilir"
+          />
+          <div class="error" id="mobileError">
+            Mobil nömrə yalnız rəqəmlərdən ibarət olmalıdır.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="confirmation" required />
+            Bütün məlumatların düzgün olduğunu təsdiqləyirsinizmi?*
+          </label>
+          <div class="error" id="confirmationError">
+            Məlumatların düzgün olduğunu təsdiqləmək məcburidir.
+          </div>
+        </div>
+
+        <button type="submit" id="addBtn">Əlavə et</button>
+      </form>
+
+      <div class="sections">
+        <h2>Əlavə edilmiş şəxslər</h2>
+        <table id="personsTable">
+          <thead>
+            <tr>
+              <th>Ad</th>
+              <th>Soyad</th>
+              <th>Ata adı</th>
+              <th>Email</th>
+              <th>Mobil</th>
+              <th>Əməliyyat</th>
+            </tr>
+          </thead>
+          <tbody id="personsList">
+            <!-- Əlavə edilmiş şəxslər burda göstəriləjək -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sections">
+        <div class="form-group">
+          <label for="region">Rayonun adı*</label>
+          <input
+            type="text"
+            id="region"
+            required
+            placeholder="misalçun: Zaqatala"
+            pattern="[A-Za-zƏəĞğİıÖöŞşÜüÇç]+"
+            title="Yalnız ingilis və azərbaycan hərflərinə icazə verilir"
+          />
+          <div class="error" id="regionError">Rayonun adı qeyd etməmisiniz və ya yazılışını yenidən yoxlayın.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="municipality">Bələdiyyənin adı*</label>
+          <input
+            type="text"
+            id="municipality"
+            required
+            placeholder="misalçun: Dağlı-Üçüncü Tala"
+            title="Yalnız ingilis və azərbaycan hərflərinə icazə verilir"
+          />
+          <div class="error" id="municipalityError">
+            Bələdiyyənin adını qeyd etməmisiniz və ya yazılışını yenidən yoxlayın.
+          </div>
+        </div>
+
+        <h2>Məlumatı ixrac et</h2>
+        <button id="downloadBtn" disabled>Excel yüklə</button>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Store persons data
+        let personsData = [];
+        let excelName;
+
+        // DOM Elementləri
+        const regionInput = document.getElementById("region");
+        const municipalityInput = document.getElementById("municipality");
+        const userForm = document.getElementById("userForm");
+        const firstNameInput = document.getElementById("firstName");
+        const lastNameInput = document.getElementById("lastName");
+        const fatherNameInput = document.getElementById("fatherName");
+        const emailInput = document.getElementById("email");
+        const mobileInput = document.getElementById("mobile");
+        const confirmationCheckbox = document.getElementById("confirmation");
+        const personsList = document.getElementById("personsList");
+        const downloadBtn = document.getElementById("downloadBtn");
+
+        // Error mesajı
+        const regionError = document.getElementById("regionError");
+        const municipalityError = document.getElementById("municipalityError");
+        const firstNameError = document.getElementById("firstNameError");
+        const lastNameError = document.getElementById("lastNameError");
+        const fatherNameError = document.getElementById("fatherNameError");
+        const emailError = document.getElementById("emailError");
+        const mobileError = document.getElementById("mobileError");
+        const confirmationError = document.getElementById("confirmationError");
+
+        userForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          if (validateForm()) {
+            addPerson();
+            resetForm();
+          }
         });
-        
 
-       // console.log(personsData);
-   
-        updatePersonsList();
-        
+        function validateExcelName() {
+          let isValid = true;
+          resetErrorsExcelName();
+          if (
+            !regionInput.value.trim() ||
+            !/^[A-Za-zƏəĞğİıÖöŞşÜüÇç]+$/.test(regionInput.value.trim())
+          ) {
+            regionError.style.display = "block";
+            isValid = false;
+          }
+          if (
+            !municipalityInput.value.trim() ||
+            !/^[A-Za-zƏəĞğİıÖöŞşÜüÇç]+([ -][A-Za-zƏəĞğİıÖöŞşÜüÇç]+){0,2}$/.test(municipalityInput.value.trim())
+          ) {
+            municipalityError.style.display = "block";
+            isValid = false;
+          }
 
-        downloadBtn.disabled = false;
-      }
-      
+          return isValid;
+        }
 
-      function updatePersonsList() {
-        personsList.innerHTML = '';
-        
-        personsData.forEach((person, index) => {
-          const row = document.createElement('tr');
-          
-          row.innerHTML = `
+        function resetErrorsExcelName() {
+          regionError.style.display = "none";
+          municipalityError.style.display = "none";
+        }
+
+        function validateForm() {
+          let isValid = true;
+
+          resetErrors();
+
+          // Validasiya Ad
+          if (
+            !firstNameInput.value.trim() ||
+            !/^[A-Za-z]+$/.test(firstNameInput.value.trim())
+          ) {
+            firstNameError.style.display = "block";
+            isValid = false;
+          }
+
+          // Validasiya soyad
+          if (
+            !lastNameInput.value.trim() ||
+            !/^[A-Za-z]+$/.test(lastNameInput.value.trim())
+          ) {
+            lastNameError.style.display = "block";
+            isValid = false;
+          }
+
+          // Validasiya dede ad
+          if (
+            !fatherNameInput.value.trim() ||
+            !/^[A-Za-z]+$/.test(fatherNameInput.value.trim())
+          ) {
+            fatherNameError.style.display = "block";
+            isValid = false;
+          }
+
+          // Validasiya email
+          if (
+            !emailInput.value.trim() ||
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())
+          ) {
+            emailError.style.display = "block";
+            isValid = false;
+          }
+
+          // Validasiya telfon (optionaldı)
+          if (
+            mobileInput.value.trim() &&
+            !/^[0-9]+$/.test(mobileInput.value.trim())
+          ) {
+            mobileError.style.display = "block";
+            isValid = false;
+          }
+
+          // Validate Confirmation
+          if (!confirmationCheckbox.checked) {
+            confirmationError.style.display = "block";
+            isValid = false;
+          }
+
+          return isValid;
+        }
+
+        function resetErrors() {
+          firstNameError.style.display = "none";
+          lastNameError.style.display = "none";
+          fatherNameError.style.display = "none";
+          emailError.style.display = "none";
+          mobileError.style.display = "none";
+          confirmationError.style.display = "none";
+        }
+
+        function addExcelName() {
+          const region = regionInput.value.trim();
+          const municipality = municipalityInput.value.trim();
+          excelName = `${region.toUpperCase()} - ${municipality}`;
+        }
+
+        function addPerson() {
+          const firstName = firstNameInput.value.trim();
+          const lastName = lastNameInput.value.trim();
+          const fatherName = fatherNameInput.value.trim();
+          const email = emailInput.value.trim();
+          const mobile = mobileInput.value.trim();
+          const fatherInitial = fatherName.charAt(0).toLowerCase();
+          const username = `${firstName.toLowerCase()}.${fatherInitial}.${lastName.toLowerCase()}@belediyye.local`;
+
+          // Add to data array
+          personsData.push({
+            firstName,
+            lastName,
+            fatherName,
+            email,
+            mobile,
+            fatherInitial,
+            username,
+          });
+
+          // console.log(personsData);
+
+          updatePersonsList();
+
+          downloadBtn.disabled = false;
+        }
+
+        function updatePersonsList() {
+          personsList.innerHTML = "";
+
+          personsData.forEach((person, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
             <td>${person.firstName}</td>
             <td>${person.lastName}</td>
             <td>${person.fatherName}</td>
             <td>${person.email}</td>
-            <td>${person.mobile || '-'}</td>
+            <td>${person.mobile || "-"}</td>
             <td><button class="delete-btn" data-index="${index}">Delete</button></td>
           `;
-          
-          personsList.appendChild(row);
-        });
-        
 
-        document.querySelectorAll('.delete-btn').forEach(button => {
-          button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            deletePerson(index);
+            personsList.appendChild(row);
           });
-        });
-      }
-      
-  
-      function deletePerson(index) {
-        personsData.splice(index, 1);
-        updatePersonsList();
-        
 
-        if (personsData.length === 0) {
-          downloadBtn.disabled = true;
+          document.querySelectorAll(".delete-btn").forEach((button) => {
+            button.addEventListener("click", function () {
+              const index = parseInt(this.getAttribute("data-index"));
+              deletePerson(index);
+            });
+          });
         }
-      }
-      
-   
-      function resetForm() {
-        userForm.reset();
-      }
-      
 
-      downloadBtn.addEventListener('click', function() {
-        if (personsData.length === 0) return;
-        
-        // Create worksheet data
-        const wsData = [
-          ['FirstName', 'MiddleInitials', 'LastName', 'Password', 'Email', 'MobilePhone', 'New User']
-        ];
-        
-        personsData.forEach(person => {
-          wsData.push([
-            person.firstName,
-            person.fatherInitial.toUpperCase(),
-            person.lastName,
-            '', 
-            person.email,
-            person.mobile || '0', // If mobile is empty, use '0'
-            person.username
-          ]);
+        function deletePerson(index) {
+          personsData.splice(index, 1);
+          updatePersonsList();
+
+          if (personsData.length === 0) {
+            downloadBtn.disabled = true;
+          }
+        }
+
+        function resetForm() {
+          userForm.reset();
+        }
+
+        downloadBtn.addEventListener("click", function () {
+          if (!validateExcelName()) return;
+          else addExcelName();
+
+          if (personsData.length === 0) return;
+
+          const wsData = [
+            [
+              "FirstName",
+              "MiddleInitials",
+              "LastName",
+              "Password",
+              "Email",
+              "MobilePhone",
+              "New User",
+            ],
+          ];
+
+          personsData.forEach((person) => {
+            wsData.push([
+              person.firstName,
+              person.fatherInitial.toUpperCase(),
+              person.lastName,
+              "",
+              person.email,
+              person.mobile || "0",
+              person.username,
+            ]);
+          });
+
+          const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Users");
+
+          const excelBuffer = XLSX.write(wb, {
+            bookType: "xlsx",
+            type: "array",
+          });
+
+          saveAsExcelFile(excelBuffer, excelName);
         });
-        
-        // Create worksheet
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Users');
-        
-        // Generate Excel file
-        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        
-        // Save file
-        saveAsExcelFile(excelBuffer, 'users_data');
+
+        function saveAsExcelFile(buffer, fileName) {
+          const data = new Blob([buffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
+          saveAs(data, fileName + ".xlsx");
+        }
       });
-      
-      // Save Excel file function
-      function saveAsExcelFile(buffer, fileName) {
-        const data = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        saveAs(data, fileName + '.xlsx');
-      }
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
